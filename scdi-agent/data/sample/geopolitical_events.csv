@@ -1,0 +1,21 @@
+event_id,event_name,start_date,end_date,severity,region,affected_ports,event_type,disruption_score
+GE-2015-01,Tianjin Port Explosions & Chemical Terminal Freeze,2015-08-12,2015-09-30,critical,Asia,"Tianjin,Qingdao,Dalian",industrial_blast,0.93
+GE-2016-02,Hanjin Shipping Global Bankruptcy Receivership,2016-08-31,2016-11-15,critical,Global,"Busan,Long Beach,Singapore,Rotterdam",bankruptcy,0.95
+GE-2017-03,Hurricane Harvey Gulf Coast Petrochemical Shutdown,2017-08-25,2017-09-20,high,North America,"Houston,Corpus Christi,Beaumont",hurricane,0.84
+GE-2018-04,US-China Trade Tariff Front-Loading Surge,2018-09-24,2019-01-15,medium,Trans-Pacific,"Shanghai,Ningbo,Shenzhen,Los Angeles",tariff_shock,0.68
+GE-2020-05,COVID-19 Supply Chain Shock,2020-03-15,2020-09-30,critical,Global,"Los Angeles,Shanghai,Rotterdam,Busan",pandemic,0.92
+GE-2021-06,Suez Canal Blockage (Ever Given),2021-03-23,2021-03-29,high,Middle East,"Suez,Port Said,Jeddah",canal_blockage,0.88
+GE-2021-07,Yantian Port Delta COVID Quarantine Bottleneck,2021-05-25,2021-06-30,critical,Asia,"Shenzhen,Yantian,Hong Kong",pandemic_lockdown,0.94
+GE-2022-08,Russia-Ukraine Conflict Trade Shock,2022-02-24,2022-12-31,critical,Europe,"Odessa,Rotterdam,Hamburg,Constanza",conflict,0.85
+GE-2022-09,Rhine River Low Water Inland Navigation Drought,2022-08-10,2022-09-30,high,Europe,"Rotterdam,Antwerp,Duisburg,Basel",drought_climate,0.81
+GE-2023-10,West Coast Port Labor Disruption,2023-07-01,2023-08-15,high,North America,"Los Angeles,Long Beach,Oakland,Seattle",labor_strike,0.79
+GE-2024-11,Panama Canal Drought Draft Restrictions,2024-01-01,2024-05-31,medium,Central America,"Balboa,Colon,Manzanillo",drought,0.71
+GE-2024-12,Red Sea Shipping Crisis,2024-01-12,2024-06-30,critical,Middle East,"Jebel Ali,Jeddah,Port Said,Suez",security,0.91
+GE-2024-13,Baltimore Francis Scott Key Bridge Collapse,2024-03-26,2024-06-10,critical,North America,"Baltimore,Norfolk,New York/New Jersey",infrastructure,0.89
+GE-2024-14,Super Typhoon Yagi South China Sea Terminal Halt,2024-09-06,2024-09-22,high,Asia,"Haiphong,Zhanjiang,Hong Kong,Guangzhou",weather_cyclone,0.83
+GE-2024-15,US East & Gulf Coast ILA Dockworkers Strike,2024-10-01,2024-10-04,critical,North America,"New York/New Jersey,Savannah,Houston,Charleston",labor_strike,0.92
+GE-2025-16,Malacca Strait Marine Digital Clearing Cyber Attack,2025-04-18,2025-05-02,critical,Southeast Asia,"Singapore,Port Klang,Tanjung Pelepas",cyber_infrastructure,0.89
+GE-2025-17,Typhoon Season East Asia Congestion,2025-08-10,2025-09-20,medium,Asia,"Busan,Shanghai,Kaohsiung,Hong Kong",weather,0.64
+GE-2025-18,Rhine-Danube Winter Freeze & Industrial Lock Freeze,2025-12-05,2026-01-10,high,Europe,"Rotterdam,Antwerp,Hamburg",freeze_weather,0.78
+GE-2026-19,Strait of Hormuz Disruption Scenario,2026-03-01,2026-04-15,critical,Middle East,"Jebel Ali,Bandar Abbas,Dammam",security,0.94
+GE-2026-20,Taiwan Strait Maritime Navigation Reroute Advisory,2026-06-14,2026-07-20,critical,East Asia,"Kaohsiung,Keelung,Taichung,Xiamen",geopolitical_tension,0.91

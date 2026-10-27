@@ -1,0 +1,125 @@
+{
+  "scenario": {
+    "scenario_id": "scn_bd5cf0ba80",
+    "source_file": "shipping_disruptions.csv",
+    "event_name": "Port disruption at Los Angeles",
+    "date": "2020-03-29",
+    "region": "North America",
+    "ports": [
+      "Los Angeles"
+    ],
+    "severity": "critical",
+    "delay_days": 4.016666666666667,
+    "risk_score": 0.8720000000000001,
+    "freight_cost": 4210.0,
+    "congestion": 0.8033333333333333,
+    "on_time_pct": 41.2,
+    "event_type": "container",
+    "raw": {
+      "date": "2020-03-29",
+      "port": "Los Angeles",
+      "region": "North America",
+      "vessel_type": "container",
+      "disruption_index": "8.72",
+      "wait_hours": "96.4",
+      "freight_rate": "4210",
+      "on_time_pct": "41.2",
+      "backlog_teu": "18400"
+    }
+  },
+  "iterations": [
+    {
+      "iteration": 1,
+      "state": "RETRY_EVALUATION",
+      "planner": "Parse historical disruption 'Port disruption at Los Angeles' (2020-03-29, critical). Map inbound SKUs at Los Angeles to warehouse burn rates. Query Zetaris ERP for open POs and DOIR under 4.0d delay.",
+      "executor": {
+        "tool": "zetaris_federated_sql_query",
+        "params": {
+          "query": "SELECT sku, on_hand, daily_burn, po_eta FROM erp.inventory i JOIN erp.purchase_orders p ON i.sku=p.sku WHERE p.origin_port='Los Angeles' AND disruption_date='2020-03-29'",
+          "endpoint": "primary",
+          "meterless_cost_budget_remaining": 0.91,
+          "kaggle_source": "shipping_disruptions.csv",
+          "scenario_id": "scn_bd5cf0ba80"
+        }
+      },
+      "evaluator": {
+        "data_complete": false,
+        "confidence_score": 0.33,
+        "missing_evidence_detected": true,
+        "verdict": "RETRY"
+      },
+      "metrics": {
+        "meterless_tokens_used": 1274,
+        "nvidia_nim_latency_ms": 61,
+        "doir_days": 0.0,
+        "burn_rate_units_per_day": 860,
+        "hist_delay_days": 4.016666666666667,
+        "hist_risk_score": 0.8720000000000001
+      },
+      "carryover": "COMPLETED: strike/disruption bulletin parsed; primary ERP pull attempted\nREMAINING: backup supplier contracts; alternate routing; mitigation memo\nDECISIONS: reroute=secondary_erp_shard; risk=critical_doir\nCONTEXT: confidence_score=0.33; retry_count=1; missing_evidence=[backup_contracts,alt_lane_capacity]; doir_days=0.0; hist_delay_days=4.0; scenario=scn_bd5cf0ba80",
+      "hint": "Historical critical shock \u2192 DOIR 0.0d; missing backup contracts + alt lane capacity"
+    },
+    {
+      "iteration": 2,
+      "state": "CONTINUE",
+      "planner": "Iteration 1 missing backup_contracts, alt_lane_capacity. Re-route Zetaris to contracts shard; compute DOIR recovery under container delay scenarios for Los Angeles.",
+      "executor": {
+        "tool": "zetaris_federated_sql_query",
+        "params": {
+          "query": "SELECT vendor_id, sku, lead_time_days, capacity FROM erp.backup_contracts WHERE sku IN (SELECT sku FROM strike_exposure WHERE port='Los Angeles')",
+          "endpoint": "secondary",
+          "meterless_cost_budget_remaining": 0.79,
+          "exposed_sku": "SKU-LAX-ELECTRONICS",
+          "scenario_id": "scn_bd5cf0ba80"
+        }
+      },
+      "evaluator": {
+        "data_complete": true,
+        "confidence_score": 0.75,
+        "missing_evidence_detected": false,
+        "verdict": "CONTINUE"
+      },
+      "metrics": {
+        "meterless_tokens_used": 1634,
+        "nvidia_nim_latency_ms": 67,
+        "doir_days": 5.54,
+        "burn_rate_units_per_day": 860,
+        "hist_delay_days": 4.016666666666667,
+        "hist_risk_score": 0.8720000000000001
+      },
+      "carryover": "COMPLETED: backup contracts + alt lane capacity retrieved\nREMAINING: emit executive mitigation report\nDECISIONS: vendor=V-482; lane=rail_intermodal; doir_recovered=5.54\nCONTEXT: confidence_score=0.75; retry_count=1; missing_evidence=[]; doir_days=5.54; hist_delay_days=4.0; scenario=scn_bd5cf0ba80",
+      "hint": "Backup V-482 via rail_intermodal recovers DOIR to 5.54 days (hist delay 4.0d)"
+    },
+    {
+      "iteration": 3,
+      "state": "PROCEED_TO_FINAL_OUTPUT",
+      "planner": "Evidence complete for Port disruption at Los Angeles. Synthesize NLP executive report: strike/disruption impact, DOIR trajectory, recommended PO reallocation.",
+      "executor": {
+        "tool": "emit_executive_report",
+        "params": {
+          "format": "structured_json",
+          "audience": "supply_chain_vp",
+          "meterless_cost_budget_remaining": 0.67,
+          "event": "Port disruption at Los Angeles",
+          "scenario_id": "scn_bd5cf0ba80"
+        }
+      },
+      "evaluator": {
+        "data_complete": true,
+        "confidence_score": 0.96,
+        "missing_evidence_detected": false,
+        "verdict": "PROCEED_TO_FINAL_OUTPUT"
+      },
+      "metrics": {
+        "meterless_tokens_used": 1994,
+        "nvidia_nim_latency_ms": 73,
+        "doir_days": 5.54,
+        "burn_rate_units_per_day": 860,
+        "hist_delay_days": 4.016666666666667,
+        "hist_risk_score": 0.8720000000000001
+      },
+      "carryover": "COMPLETED: evidence + executive mitigation report\nREMAINING: none\nDECISIONS: verdict=PROCEED_TO_FINAL_OUTPUT; action=reallocate_PO_to_V-482\nCONTEXT: confidence_score=0.96; retry_count=1; missing_evidence=[]; doir_days=5.54; hist_delay_days=4.0; scenario=scn_bd5cf0ba80",
+      "hint": "Mitigation accepted for Port disruption at Los Angeles: reallocate PO to V-482"
+    }
+  ]
+}

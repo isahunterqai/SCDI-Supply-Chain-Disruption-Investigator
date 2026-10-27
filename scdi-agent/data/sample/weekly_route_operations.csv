@@ -1,0 +1,24 @@
+date,route_id,origin_port,dest_port,delay_days,freight_cost_usd,risk_score,port_congestion,container_availability,route_status
+2015-08-23,R-EASIA-USW,Tianjin,Los Angeles,19.2,3400,0.92,0.85,0.38,disrupted
+2016-09-11,R-PAC-USW,Busan,Long Beach,24.5,5600,0.96,0.91,0.22,disrupted
+2017-09-03,R-GULF-EU,Houston,Antwerp,14.6,4100,0.84,0.79,0.44,disrupted
+2018-10-14,R-PAC-USW,Shenzhen,Los Angeles,11.8,3850,0.72,0.82,0.49,degraded
+2020-03-22,R-PAC-USW,Shanghai,Los Angeles,18.5,4200,0.91,0.88,0.32,disrupted
+2020-04-05,R-PAC-USW,Shanghai,Los Angeles,22.1,5100,0.94,0.93,0.28,disrupted
+2021-03-28,R-ASIA-EU,Singapore,Rotterdam,14.0,3800,0.86,0.72,0.41,disrupted
+2021-06-06,R-PAC-USW,Shenzhen,Los Angeles,20.4,8400,0.94,0.95,0.24,disrupted
+2022-03-06,R-BLK-EU,Odessa,Rotterdam,21.0,4500,0.89,0.81,0.35,suspended
+2022-08-21,R-EUR-INL,Rotterdam,Duisburg,9.8,4200,0.81,0.78,0.46,degraded
+2023-07-16,R-PAC-USW,Busan,Los Angeles,12.4,3600,0.78,0.84,0.45,disrupted
+2023-07-23,R-PAC-USW,Shanghai,Long Beach,15.2,3900,0.82,0.87,0.39,disrupted
+2024-02-04,R-ASIA-MED,Shanghai,Port Said,19.8,6200,0.93,0.76,0.30,rerouted
+2024-02-11,R-ASIA-MED,Busan,Jeddah,17.3,5800,0.90,0.74,0.33,rerouted
+2024-03-03,R-PAC-USE,Shanghai,New York/New Jersey,9.1,2900,0.55,0.48,0.62,degraded
+2024-04-07,R-TRANSATL,Rotterdam,Baltimore,12.2,3400,0.76,0.80,0.50,rerouted
+2024-09-15,R-SEASIA-US,Haiphong,Los Angeles,11.4,4600,0.74,0.77,0.48,disrupted
+2024-10-06,R-ASIA-USE,Ningbo,Savannah,17.5,6900,0.92,0.94,0.26,disrupted
+2025-04-27,R-ASIA-GULF,Singapore,Jebel Ali,15.8,4900,0.88,0.86,0.34,disrupted
+2025-08-24,R-EASIA,Busan,Shanghai,6.2,2100,0.61,0.70,0.55,degraded
+2025-12-14,R-EUR-FEED,Hamburg,Rotterdam,10.5,3100,0.79,0.75,0.42,degraded
+2026-03-08,R-GULF-ASIA,Jebel Ali,Mumbai,16.5,4700,0.95,0.80,0.29,disrupted
+2026-06-21,R-EASIA-PAC,Kaohsiung,Long Beach,18.9,5900,0.91,0.89,0.31,rerouted

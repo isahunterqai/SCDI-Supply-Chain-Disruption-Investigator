@@ -1,0 +1,125 @@
+{
+  "scenario": {
+    "scenario_id": "scn_9ed84ef868",
+    "source_file": "shipping_disruptions.csv",
+    "event_name": "Port disruption at Shanghai",
+    "date": "2020-04-12",
+    "region": "Asia",
+    "ports": [
+      "Shanghai"
+    ],
+    "severity": "critical",
+    "delay_days": 4.666666666666667,
+    "risk_score": 0.9099999999999999,
+    "freight_cost": 5080.0,
+    "congestion": 0.9333333333333333,
+    "on_time_pct": 36.8,
+    "event_type": "container",
+    "raw": {
+      "date": "2020-04-12",
+      "port": "Shanghai",
+      "region": "Asia",
+      "vessel_type": "container",
+      "disruption_index": "9.10",
+      "wait_hours": "112.0",
+      "freight_rate": "5080",
+      "on_time_pct": "36.8",
+      "backlog_teu": "22100"
+    }
+  },
+  "iterations": [
+    {
+      "iteration": 1,
+      "state": "RETRY_EVALUATION",
+      "planner": "Parse historical disruption 'Port disruption at Shanghai' (2020-04-12, critical). Map inbound SKUs at Shanghai to warehouse burn rates. Query Zetaris ERP for open POs and DOIR under 4.7d delay.",
+      "executor": {
+        "tool": "zetaris_federated_sql_query",
+        "params": {
+          "query": "SELECT sku, on_hand, daily_burn, po_eta FROM erp.inventory i JOIN erp.purchase_orders p ON i.sku=p.sku WHERE p.origin_port='Shanghai' AND disruption_date='2020-04-12'",
+          "endpoint": "primary",
+          "meterless_cost_budget_remaining": 0.9,
+          "kaggle_source": "shipping_disruptions.csv",
+          "scenario_id": "scn_9ed84ef868"
+        }
+      },
+      "evaluator": {
+        "data_complete": false,
+        "confidence_score": 0.32,
+        "missing_evidence_detected": true,
+        "verdict": "RETRY"
+      },
+      "metrics": {
+        "meterless_tokens_used": 1281,
+        "nvidia_nim_latency_ms": 63,
+        "doir_days": 0.0,
+        "burn_rate_units_per_day": 940,
+        "hist_delay_days": 4.666666666666667,
+        "hist_risk_score": 0.9099999999999999
+      },
+      "carryover": "COMPLETED: strike/disruption bulletin parsed; primary ERP pull attempted\nREMAINING: backup supplier contracts; alternate routing; mitigation memo\nDECISIONS: reroute=secondary_erp_shard; risk=critical_doir\nCONTEXT: confidence_score=0.32; retry_count=1; missing_evidence=[backup_contracts,alt_lane_capacity]; doir_days=0.0; hist_delay_days=4.7; scenario=scn_9ed84ef868",
+      "hint": "Historical critical shock \u2192 DOIR 0.0d; missing backup contracts + alt lane capacity"
+    },
+    {
+      "iteration": 2,
+      "state": "CONTINUE",
+      "planner": "Iteration 1 missing backup_contracts, alt_lane_capacity. Re-route Zetaris to contracts shard; compute DOIR recovery under container delay scenarios for Shanghai.",
+      "executor": {
+        "tool": "zetaris_federated_sql_query",
+        "params": {
+          "query": "SELECT vendor_id, sku, lead_time_days, capacity FROM erp.backup_contracts WHERE sku IN (SELECT sku FROM strike_exposure WHERE port='Shanghai')",
+          "endpoint": "secondary",
+          "meterless_cost_budget_remaining": 0.78,
+          "exposed_sku": "SKU-SHA-COMPONENTS",
+          "scenario_id": "scn_9ed84ef868"
+        }
+      },
+      "evaluator": {
+        "data_complete": true,
+        "confidence_score": 0.74,
+        "missing_evidence_detected": false,
+        "verdict": "CONTINUE"
+      },
+      "metrics": {
+        "meterless_tokens_used": 1641,
+        "nvidia_nim_latency_ms": 69,
+        "doir_days": 5.45,
+        "burn_rate_units_per_day": 940,
+        "hist_delay_days": 4.666666666666667,
+        "hist_risk_score": 0.9099999999999999
+      },
+      "carryover": "COMPLETED: backup contracts + alt lane capacity retrieved\nREMAINING: emit executive mitigation report\nDECISIONS: vendor=V-330; lane=transpac_alt; doir_recovered=5.45\nCONTEXT: confidence_score=0.74; retry_count=1; missing_evidence=[]; doir_days=5.45; hist_delay_days=4.7; scenario=scn_9ed84ef868",
+      "hint": "Backup V-330 via transpac_alt recovers DOIR to 5.45 days (hist delay 4.7d)"
+    },
+    {
+      "iteration": 3,
+      "state": "PROCEED_TO_FINAL_OUTPUT",
+      "planner": "Evidence complete for Port disruption at Shanghai. Synthesize NLP executive report: strike/disruption impact, DOIR trajectory, recommended PO reallocation.",
+      "executor": {
+        "tool": "emit_executive_report",
+        "params": {
+          "format": "structured_json",
+          "audience": "supply_chain_vp",
+          "meterless_cost_budget_remaining": 0.66,
+          "event": "Port disruption at Shanghai",
+          "scenario_id": "scn_9ed84ef868"
+        }
+      },
+      "evaluator": {
+        "data_complete": true,
+        "confidence_score": 0.96,
+        "missing_evidence_detected": false,
+        "verdict": "PROCEED_TO_FINAL_OUTPUT"
+      },
+      "metrics": {
+        "meterless_tokens_used": 2001,
+        "nvidia_nim_latency_ms": 75,
+        "doir_days": 5.45,
+        "burn_rate_units_per_day": 940,
+        "hist_delay_days": 4.666666666666667,
+        "hist_risk_score": 0.9099999999999999
+      },
+      "carryover": "COMPLETED: evidence + executive mitigation report\nREMAINING: none\nDECISIONS: verdict=PROCEED_TO_FINAL_OUTPUT; action=reallocate_PO_to_V-330\nCONTEXT: confidence_score=0.96; retry_count=1; missing_evidence=[]; doir_days=5.45; hist_delay_days=4.7; scenario=scn_9ed84ef868",
+      "hint": "Mitigation accepted for Port disruption at Shanghai: reallocate PO to V-330"
+    }
+  ]
+}

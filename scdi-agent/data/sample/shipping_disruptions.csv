@@ -1,0 +1,25 @@
+date,port,region,vessel_type,disruption_index,wait_hours,freight_rate,on_time_pct,backlog_teu
+2015-08-16,Tianjin,Asia,container,9.35,134.0,3800,29.4,28000
+2016-09-04,Busan,Asia,container,9.52,148.5,5200,22.1,34000
+2017-09-03,Houston,North America,tanker,8.85,92.0,3900,42.0,15100
+2018-10-21,Long Beach,North America,container,7.15,64.0,3400,56.5,12400
+2020-03-29,Los Angeles,North America,container,8.72,96.4,4210,41.2,18400
+2020-04-12,Shanghai,Asia,container,9.10,112.0,5080,36.8,22100
+2021-03-24,Port Said,Middle East,container,8.55,88.0,3920,44.1,9800
+2021-06-06,Shenzhen,Asia,container,9.48,142.0,8100,24.5,32500
+2022-03-06,Rotterdam,Europe,container,7.94,74.5,3610,52.3,14200
+2022-08-21,Antwerp,Europe,container,7.80,72.0,3800,54.2,16300
+2023-07-09,Los Angeles,North America,container,7.81,81.2,3550,48.7,16900
+2023-07-16,Long Beach,North America,container,8.05,85.6,3680,46.2,17550
+2024-01-21,Jebel Ali,Middle East,container,8.88,91.3,6050,39.5,11300
+2024-02-04,Jeddah,Middle East,tanker,8.40,70.2,5420,43.8,6200
+2024-04-07,Baltimore,North America,bulk_carrier,8.90,98.0,3500,38.0,19200
+2024-05-19,Houston,North America,container,3.13,13.4,2116,79.7,4100
+2024-06-16,Singapore,Southeast Asia,container,8.42,84.0,4300,47.6,21400
+2024-09-15,Haiphong,Asia,container,7.65,68.0,4200,51.0,12800
+2024-10-06,Savannah,North America,container,9.15,118.0,6700,31.2,24000
+2025-04-27,Singapore,Southeast Asia,container,8.95,102.0,5100,36.5,23800
+2025-08-17,Busan,Asia,container,6.45,48.0,2480,61.4,8900
+2025-12-14,Hamburg,Europe,container,7.90,75.0,3400,53.0,14700
+2026-03-08,Jebel Ali,Middle East,container,9.25,104.5,4890,33.1,15600
+2026-06-21,Kaohsiung,Asia,container,9.05,108.0,5800,34.0,20500

@@ -1,0 +1,128 @@
+{
+  "scenario": {
+    "scenario_id": "scn_f3a253d9c3",
+    "source_file": "geopolitical_events.csv",
+    "event_name": "COVID-19 Supply Chain Shock",
+    "date": "2020-03-15",
+    "region": "Global",
+    "ports": [
+      "Los Angeles",
+      "Shanghai",
+      "Rotterdam",
+      "Busan"
+    ],
+    "severity": "critical",
+    "delay_days": 18.400000000000002,
+    "risk_score": 0.92,
+    "freight_cost": 6180.0,
+    "congestion": 0.92,
+    "on_time_pct": null,
+    "event_type": "pandemic",
+    "raw": {
+      "event_id": "GE-2020-01",
+      "event_name": "COVID-19 Supply Chain Shock",
+      "start_date": "2020-03-15",
+      "end_date": "2020-09-30",
+      "severity": "critical",
+      "region": "Global",
+      "affected_ports": "Los Angeles,Shanghai,Rotterdam,Busan",
+      "event_type": "pandemic",
+      "disruption_score": "0.92"
+    }
+  },
+  "iterations": [
+    {
+      "iteration": 1,
+      "state": "RETRY_EVALUATION",
+      "planner": "Parse historical disruption 'COVID-19 Supply Chain Shock' (2020-03-15, critical). Map inbound SKUs at Los Angeles to warehouse burn rates. Query Zetaris ERP for open POs and DOIR under 18.4d delay.",
+      "executor": {
+        "tool": "zetaris_federated_sql_query",
+        "params": {
+          "query": "SELECT sku, on_hand, daily_burn, po_eta FROM erp.inventory i JOIN erp.purchase_orders p ON i.sku=p.sku WHERE p.origin_port='Los Angeles' AND disruption_date='2020-03-15'",
+          "endpoint": "primary",
+          "meterless_cost_budget_remaining": 0.9,
+          "kaggle_source": "geopolitical_events.csv",
+          "scenario_id": "scn_f3a253d9c3"
+        }
+      },
+      "evaluator": {
+        "data_complete": false,
+        "confidence_score": 0.32,
+        "missing_evidence_detected": true,
+        "verdict": "RETRY"
+      },
+      "metrics": {
+        "meterless_tokens_used": 1284,
+        "nvidia_nim_latency_ms": 63,
+        "doir_days": 0.0,
+        "burn_rate_units_per_day": 860,
+        "hist_delay_days": 18.400000000000002,
+        "hist_risk_score": 0.92
+      },
+      "carryover": "COMPLETED: strike/disruption bulletin parsed; primary ERP pull attempted\nREMAINING: backup supplier contracts; alternate routing; mitigation memo\nDECISIONS: reroute=secondary_erp_shard; risk=critical_doir\nCONTEXT: confidence_score=0.32; retry_count=1; missing_evidence=[backup_contracts,alt_lane_capacity]; doir_days=0.0; hist_delay_days=18.4; scenario=scn_f3a253d9c3",
+      "hint": "Historical critical shock \u2192 DOIR 0.0d; missing backup contracts + alt lane capacity"
+    },
+    {
+      "iteration": 2,
+      "state": "CONTINUE",
+      "planner": "Iteration 1 missing backup_contracts, alt_lane_capacity. Re-route Zetaris to contracts shard; compute DOIR recovery under pandemic delay scenarios for Los Angeles.",
+      "executor": {
+        "tool": "zetaris_federated_sql_query",
+        "params": {
+          "query": "SELECT vendor_id, sku, lead_time_days, capacity FROM erp.backup_contracts WHERE sku IN (SELECT sku FROM strike_exposure WHERE port='Los Angeles')",
+          "endpoint": "secondary",
+          "meterless_cost_budget_remaining": 0.78,
+          "exposed_sku": "SKU-LAX-ELECTRONICS",
+          "scenario_id": "scn_f3a253d9c3"
+        }
+      },
+      "evaluator": {
+        "data_complete": true,
+        "confidence_score": 0.74,
+        "missing_evidence_detected": false,
+        "verdict": "CONTINUE"
+      },
+      "metrics": {
+        "meterless_tokens_used": 1644,
+        "nvidia_nim_latency_ms": 69,
+        "doir_days": 5.43,
+        "burn_rate_units_per_day": 860,
+        "hist_delay_days": 18.400000000000002,
+        "hist_risk_score": 0.92
+      },
+      "carryover": "COMPLETED: backup contracts + alt lane capacity retrieved\nREMAINING: emit executive mitigation report\nDECISIONS: vendor=V-482; lane=rail_intermodal; doir_recovered=5.43\nCONTEXT: confidence_score=0.74; retry_count=1; missing_evidence=[]; doir_days=5.43; hist_delay_days=18.4; scenario=scn_f3a253d9c3",
+      "hint": "Backup V-482 via rail_intermodal recovers DOIR to 5.43 days (hist delay 18.4d)"
+    },
+    {
+      "iteration": 3,
+      "state": "PROCEED_TO_FINAL_OUTPUT",
+      "planner": "Evidence complete for COVID-19 Supply Chain Shock. Synthesize NLP executive report: strike/disruption impact, DOIR trajectory, recommended PO reallocation.",
+      "executor": {
+        "tool": "emit_executive_report",
+        "params": {
+          "format": "structured_json",
+          "audience": "supply_chain_vp",
+          "meterless_cost_budget_remaining": 0.66,
+          "event": "COVID-19 Supply Chain Shock",
+          "scenario_id": "scn_f3a253d9c3"
+        }
+      },
+      "evaluator": {
+        "data_complete": true,
+        "confidence_score": 0.96,
+        "missing_evidence_detected": false,
+        "verdict": "PROCEED_TO_FINAL_OUTPUT"
+      },
+      "metrics": {
+        "meterless_tokens_used": 2004,
+        "nvidia_nim_latency_ms": 75,
+        "doir_days": 5.43,
+        "burn_rate_units_per_day": 860,
+        "hist_delay_days": 18.400000000000002,
+        "hist_risk_score": 0.92
+      },
+      "carryover": "COMPLETED: evidence + executive mitigation report\nREMAINING: none\nDECISIONS: verdict=PROCEED_TO_FINAL_OUTPUT; action=reallocate_PO_to_V-482\nCONTEXT: confidence_score=0.96; retry_count=1; missing_evidence=[]; doir_days=5.43; hist_delay_days=18.4; scenario=scn_f3a253d9c3",
+      "hint": "Mitigation accepted for COVID-19 Supply Chain Shock: reallocate PO to V-482"
+    }
+  ]
+}

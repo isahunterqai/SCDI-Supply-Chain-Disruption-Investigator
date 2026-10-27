@@ -1,0 +1,127 @@
+{
+  "scenario": {
+    "scenario_id": "scn_c1d8600062",
+    "source_file": "geopolitical_events.csv",
+    "event_name": "Hurricane Harvey Gulf Coast Petrochemical Shutdown",
+    "date": "2017-08-25",
+    "region": "North America",
+    "ports": [
+      "Houston",
+      "Corpus Christi",
+      "Beaumont"
+    ],
+    "severity": "high",
+    "delay_days": 16.8,
+    "risk_score": 0.84,
+    "freight_cost": 5860.0,
+    "congestion": 0.84,
+    "on_time_pct": null,
+    "event_type": "hurricane",
+    "raw": {
+      "event_id": "GE-2017-03",
+      "event_name": "Hurricane Harvey Gulf Coast Petrochemical Shutdown",
+      "start_date": "2017-08-25",
+      "end_date": "2017-09-20",
+      "severity": "high",
+      "region": "North America",
+      "affected_ports": "Houston,Corpus Christi,Beaumont",
+      "event_type": "hurricane",
+      "disruption_score": "0.84"
+    }
+  },
+  "iterations": [
+    {
+      "iteration": 1,
+      "state": "RETRY_EVALUATION",
+      "planner": "Parse historical disruption 'Hurricane Harvey Gulf Coast Petrochemical Shutdown' (2017-08-25, high). Map inbound SKUs at Houston to warehouse burn rates. Query Zetaris ERP for open POs and DOIR under 16.8d delay.",
+      "executor": {
+        "tool": "zetaris_federated_sql_query",
+        "params": {
+          "query": "SELECT sku, on_hand, daily_burn, po_eta FROM erp.inventory i JOIN erp.purchase_orders p ON i.sku=p.sku WHERE p.origin_port='Houston' AND disruption_date='2017-08-25'",
+          "endpoint": "primary",
+          "meterless_cost_budget_remaining": 0.91,
+          "kaggle_source": "geopolitical_events.csv",
+          "scenario_id": "scn_c1d8600062"
+        }
+      },
+      "evaluator": {
+        "data_complete": false,
+        "confidence_score": 0.34,
+        "missing_evidence_detected": true,
+        "verdict": "RETRY"
+      },
+      "metrics": {
+        "meterless_tokens_used": 1268,
+        "nvidia_nim_latency_ms": 61,
+        "doir_days": 0.0,
+        "burn_rate_units_per_day": 580,
+        "hist_delay_days": 16.8,
+        "hist_risk_score": 0.84
+      },
+      "carryover": "COMPLETED: strike/disruption bulletin parsed; primary ERP pull attempted\nREMAINING: backup supplier contracts; alternate routing; mitigation memo\nDECISIONS: reroute=secondary_erp_shard; risk=high_doir\nCONTEXT: confidence_score=0.34; retry_count=1; missing_evidence=[backup_contracts,alt_lane_capacity]; doir_days=0.0; hist_delay_days=16.8; scenario=scn_c1d8600062",
+      "hint": "Historical high shock \u2192 DOIR 0.0d; missing backup contracts + alt lane capacity"
+    },
+    {
+      "iteration": 2,
+      "state": "CONTINUE",
+      "planner": "Iteration 1 missing backup_contracts, alt_lane_capacity. Re-route Zetaris to contracts shard; compute DOIR recovery under hurricane delay scenarios for Houston.",
+      "executor": {
+        "tool": "zetaris_federated_sql_query",
+        "params": {
+          "query": "SELECT vendor_id, sku, lead_time_days, capacity FROM erp.backup_contracts WHERE sku IN (SELECT sku FROM strike_exposure WHERE port='Houston')",
+          "endpoint": "secondary",
+          "meterless_cost_budget_remaining": 0.79,
+          "exposed_sku": "SKU-HOU-PETRO",
+          "scenario_id": "scn_c1d8600062"
+        }
+      },
+      "evaluator": {
+        "data_complete": true,
+        "confidence_score": 0.75,
+        "missing_evidence_detected": false,
+        "verdict": "CONTINUE"
+      },
+      "metrics": {
+        "meterless_tokens_used": 1628,
+        "nvidia_nim_latency_ms": 67,
+        "doir_days": 4.49,
+        "burn_rate_units_per_day": 580,
+        "hist_delay_days": 16.8,
+        "hist_risk_score": 0.84
+      },
+      "carryover": "COMPLETED: backup contracts + alt lane capacity retrieved\nREMAINING: emit executive mitigation report\nDECISIONS: vendor=V-300; lane=gulf_coast_barge; doir_recovered=4.49\nCONTEXT: confidence_score=0.75; retry_count=1; missing_evidence=[]; doir_days=4.49; hist_delay_days=16.8; scenario=scn_c1d8600062",
+      "hint": "Backup V-300 via gulf_coast_barge recovers DOIR to 4.49 days (hist delay 16.8d)"
+    },
+    {
+      "iteration": 3,
+      "state": "PROCEED_TO_FINAL_OUTPUT",
+      "planner": "Evidence complete for Hurricane Harvey Gulf Coast Petrochemical Shutdown. Synthesize NLP executive report: strike/disruption impact, DOIR trajectory, recommended PO reallocation.",
+      "executor": {
+        "tool": "emit_executive_report",
+        "params": {
+          "format": "structured_json",
+          "audience": "supply_chain_vp",
+          "meterless_cost_budget_remaining": 0.67,
+          "event": "Hurricane Harvey Gulf Coast Petrochemical Shutdown",
+          "scenario_id": "scn_c1d8600062"
+        }
+      },
+      "evaluator": {
+        "data_complete": true,
+        "confidence_score": 0.96,
+        "missing_evidence_detected": false,
+        "verdict": "PROCEED_TO_FINAL_OUTPUT"
+      },
+      "metrics": {
+        "meterless_tokens_used": 1988,
+        "nvidia_nim_latency_ms": 73,
+        "doir_days": 4.49,
+        "burn_rate_units_per_day": 580,
+        "hist_delay_days": 16.8,
+        "hist_risk_score": 0.84
+      },
+      "carryover": "COMPLETED: evidence + executive mitigation report\nREMAINING: none\nDECISIONS: verdict=PROCEED_TO_FINAL_OUTPUT; action=reallocate_PO_to_V-300\nCONTEXT: confidence_score=0.96; retry_count=1; missing_evidence=[]; doir_days=4.49; hist_delay_days=16.8; scenario=scn_c1d8600062",
+      "hint": "Mitigation accepted for Hurricane Harvey Gulf Coast Petrochemical Shutdown: reallocate PO to V-300"
+    }
+  ]
+}

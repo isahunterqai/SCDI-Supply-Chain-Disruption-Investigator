@@ -1,0 +1,127 @@
+{
+  "scenario": {
+    "scenario_id": "scn_b17162591d",
+    "source_file": "geopolitical_events.csv",
+    "event_name": "Suez Canal Blockage (Ever Given)",
+    "date": "2021-03-23",
+    "region": "Middle East",
+    "ports": [
+      "Suez",
+      "Port Said",
+      "Jeddah"
+    ],
+    "severity": "high",
+    "delay_days": 17.6,
+    "risk_score": 0.88,
+    "freight_cost": 6020.0,
+    "congestion": 0.88,
+    "on_time_pct": null,
+    "event_type": "canal_blockage",
+    "raw": {
+      "event_id": "GE-2021-02",
+      "event_name": "Suez Canal Blockage (Ever Given)",
+      "start_date": "2021-03-23",
+      "end_date": "2021-03-29",
+      "severity": "high",
+      "region": "Middle East",
+      "affected_ports": "Suez,Port Said,Jeddah",
+      "event_type": "canal_blockage",
+      "disruption_score": "0.88"
+    }
+  },
+  "iterations": [
+    {
+      "iteration": 1,
+      "state": "RETRY_EVALUATION",
+      "planner": "Parse historical disruption 'Suez Canal Blockage (Ever Given)' (2021-03-23, high). Map inbound SKUs at Suez to warehouse burn rates. Query Zetaris ERP for open POs and DOIR under 17.6d delay.",
+      "executor": {
+        "tool": "zetaris_federated_sql_query",
+        "params": {
+          "query": "SELECT sku, on_hand, daily_burn, po_eta FROM erp.inventory i JOIN erp.purchase_orders p ON i.sku=p.sku WHERE p.origin_port='Suez' AND disruption_date='2021-03-23'",
+          "endpoint": "primary",
+          "meterless_cost_budget_remaining": 0.91,
+          "kaggle_source": "geopolitical_events.csv",
+          "scenario_id": "scn_b17162591d"
+        }
+      },
+      "evaluator": {
+        "data_complete": false,
+        "confidence_score": 0.33,
+        "missing_evidence_detected": true,
+        "verdict": "RETRY"
+      },
+      "metrics": {
+        "meterless_tokens_used": 1276,
+        "nvidia_nim_latency_ms": 62,
+        "doir_days": 0.0,
+        "burn_rate_units_per_day": 380,
+        "hist_delay_days": 17.6,
+        "hist_risk_score": 0.88
+      },
+      "carryover": "COMPLETED: strike/disruption bulletin parsed; primary ERP pull attempted\nREMAINING: backup supplier contracts; alternate routing; mitigation memo\nDECISIONS: reroute=secondary_erp_shard; risk=high_doir\nCONTEXT: confidence_score=0.33; retry_count=1; missing_evidence=[backup_contracts,alt_lane_capacity]; doir_days=0.0; hist_delay_days=17.6; scenario=scn_b17162591d",
+      "hint": "Historical high shock \u2192 DOIR 0.0d; missing backup contracts + alt lane capacity"
+    },
+    {
+      "iteration": 2,
+      "state": "CONTINUE",
+      "planner": "Iteration 1 missing backup_contracts, alt_lane_capacity. Re-route Zetaris to contracts shard; compute DOIR recovery under canal_blockage delay scenarios for Suez.",
+      "executor": {
+        "tool": "zetaris_federated_sql_query",
+        "params": {
+          "query": "SELECT vendor_id, sku, lead_time_days, capacity FROM erp.backup_contracts WHERE sku IN (SELECT sku FROM strike_exposure WHERE port='Suez')",
+          "endpoint": "secondary",
+          "meterless_cost_budget_remaining": 0.79,
+          "exposed_sku": "SKU-JED-FOOD",
+          "scenario_id": "scn_b17162591d"
+        }
+      },
+      "evaluator": {
+        "data_complete": true,
+        "confidence_score": 0.74,
+        "missing_evidence_detected": false,
+        "verdict": "CONTINUE"
+      },
+      "metrics": {
+        "meterless_tokens_used": 1636,
+        "nvidia_nim_latency_ms": 68,
+        "doir_days": 4.42,
+        "burn_rate_units_per_day": 380,
+        "hist_delay_days": 17.6,
+        "hist_risk_score": 0.88
+      },
+      "carryover": "COMPLETED: backup contracts + alt lane capacity retrieved\nREMAINING: emit executive mitigation report\nDECISIONS: vendor=V-655; lane=landbridge_saudi; doir_recovered=4.42\nCONTEXT: confidence_score=0.74; retry_count=1; missing_evidence=[]; doir_days=4.42; hist_delay_days=17.6; scenario=scn_b17162591d",
+      "hint": "Backup V-655 via landbridge_saudi recovers DOIR to 4.42 days (hist delay 17.6d)"
+    },
+    {
+      "iteration": 3,
+      "state": "PROCEED_TO_FINAL_OUTPUT",
+      "planner": "Evidence complete for Suez Canal Blockage (Ever Given). Synthesize NLP executive report: strike/disruption impact, DOIR trajectory, recommended PO reallocation.",
+      "executor": {
+        "tool": "emit_executive_report",
+        "params": {
+          "format": "structured_json",
+          "audience": "supply_chain_vp",
+          "meterless_cost_budget_remaining": 0.67,
+          "event": "Suez Canal Blockage (Ever Given)",
+          "scenario_id": "scn_b17162591d"
+        }
+      },
+      "evaluator": {
+        "data_complete": true,
+        "confidence_score": 0.96,
+        "missing_evidence_detected": false,
+        "verdict": "PROCEED_TO_FINAL_OUTPUT"
+      },
+      "metrics": {
+        "meterless_tokens_used": 1996,
+        "nvidia_nim_latency_ms": 74,
+        "doir_days": 4.42,
+        "burn_rate_units_per_day": 380,
+        "hist_delay_days": 17.6,
+        "hist_risk_score": 0.88
+      },
+      "carryover": "COMPLETED: evidence + executive mitigation report\nREMAINING: none\nDECISIONS: verdict=PROCEED_TO_FINAL_OUTPUT; action=reallocate_PO_to_V-655\nCONTEXT: confidence_score=0.96; retry_count=1; missing_evidence=[]; doir_days=4.42; hist_delay_days=17.6; scenario=scn_b17162591d",
+      "hint": "Mitigation accepted for Suez Canal Blockage (Ever Given): reallocate PO to V-655"
+    }
+  ]
+}

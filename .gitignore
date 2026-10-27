@@ -1,0 +1,49 @@
+# WSL / Windows Zone Identifiers
+*:Zone.Identifier
+.DS_Store
+Thumbs.db
+
+# Root system dotfiles and configuration directories
+/.*
+!/.gitignore
+
+# Unrelated projects in home directory
+/my-markovian/
+/zetaris-platform/
+/zetaris-platform.zip*
+
+# Large archives
+/*.zip
+/*.tar*
+/*.jar
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+
+# Node & Next.js build artifacts and dependencies
+node_modules/
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+next-env.d.ts
+
+# Environment & secrets
+.env*
+*.pem
+*.key
+*.cert
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
