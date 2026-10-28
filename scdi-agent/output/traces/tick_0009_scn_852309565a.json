@@ -1,0 +1,127 @@
+{
+  "scenario": {
+    "scenario_id": "scn_852309565a",
+    "source_file": "weekly_route_operations.csv",
+    "event_name": "Route stress R-GULF-EU: Houston \u2192 Antwerp",
+    "date": "2017-09-03",
+    "region": "Trade lane",
+    "ports": [
+      "Houston",
+      "Antwerp"
+    ],
+    "severity": "high",
+    "delay_days": 14.6,
+    "risk_score": 0.84,
+    "freight_cost": 4100.0,
+    "congestion": 0.79,
+    "on_time_pct": null,
+    "event_type": "disrupted",
+    "raw": {
+      "date": "2017-09-03",
+      "route_id": "R-GULF-EU",
+      "origin_port": "Houston",
+      "dest_port": "Antwerp",
+      "delay_days": "14.6",
+      "freight_cost_usd": "4100",
+      "risk_score": "0.84",
+      "port_congestion": "0.79",
+      "container_availability": "0.44",
+      "route_status": "disrupted"
+    }
+  },
+  "iterations": [
+    {
+      "iteration": 1,
+      "state": "RETRY_EVALUATION",
+      "planner": "Parse historical disruption 'Route stress R-GULF-EU: Houston \u2192 Antwerp' (2017-09-03, high). Map inbound SKUs at Houston to warehouse burn rates. Query Zetaris ERP for open POs and DOIR under 14.6d delay.",
+      "executor": {
+        "tool": "zetaris_federated_sql_query",
+        "params": {
+          "query": "SELECT sku, on_hand, daily_burn, po_eta FROM erp.inventory i JOIN erp.purchase_orders p ON i.sku=p.sku WHERE p.origin_port='Houston' AND disruption_date='2017-09-03'",
+          "endpoint": "primary",
+          "meterless_cost_budget_remaining": 0.91,
+          "kaggle_source": "weekly_route_operations.csv",
+          "scenario_id": "scn_852309565a"
+        }
+      },
+      "evaluator": {
+        "data_complete": false,
+        "confidence_score": 0.34,
+        "missing_evidence_detected": true,
+        "verdict": "RETRY"
+      },
+      "metrics": {
+        "meterless_tokens_used": 1268,
+        "nvidia_nim_latency_ms": 60,
+        "doir_days": 0.0,
+        "burn_rate_units_per_day": 580,
+        "hist_delay_days": 14.6,
+        "hist_risk_score": 0.84
+      },
+      "carryover": "COMPLETED: strike/disruption bulletin parsed; primary ERP pull attempted\nREMAINING: backup supplier contracts; alternate routing; mitigation memo\nDECISIONS: reroute=secondary_erp_shard; risk=high_doir\nCONTEXT: confidence_score=0.34; retry_count=1; missing_evidence=[backup_contracts,alt_lane_capacity]; doir_days=0.0; hist_delay_days=14.6; scenario=scn_852309565a",
+      "hint": "Historical high shock \u2192 DOIR 0.0d; missing backup contracts + alt lane capacity"
+    },
+    {
+      "iteration": 2,
+      "state": "CONTINUE",
+      "planner": "Iteration 1 missing backup_contracts, alt_lane_capacity. Re-route Zetaris to contracts shard; compute DOIR recovery under disrupted delay scenarios for Houston.",
+      "executor": {
+        "tool": "zetaris_federated_sql_query",
+        "params": {
+          "query": "SELECT vendor_id, sku, lead_time_days, capacity FROM erp.backup_contracts WHERE sku IN (SELECT sku FROM strike_exposure WHERE port='Houston')",
+          "endpoint": "secondary",
+          "meterless_cost_budget_remaining": 0.79,
+          "exposed_sku": "SKU-HOU-PETRO",
+          "scenario_id": "scn_852309565a"
+        }
+      },
+      "evaluator": {
+        "data_complete": true,
+        "confidence_score": 0.75,
+        "missing_evidence_detected": false,
+        "verdict": "CONTINUE"
+      },
+      "metrics": {
+        "meterless_tokens_used": 1628,
+        "nvidia_nim_latency_ms": 66,
+        "doir_days": 4.49,
+        "burn_rate_units_per_day": 580,
+        "hist_delay_days": 14.6,
+        "hist_risk_score": 0.84
+      },
+      "carryover": "COMPLETED: backup contracts + alt lane capacity retrieved\nREMAINING: emit executive mitigation report\nDECISIONS: vendor=V-300; lane=gulf_coast_barge; doir_recovered=4.49\nCONTEXT: confidence_score=0.75; retry_count=1; missing_evidence=[]; doir_days=4.49; hist_delay_days=14.6; scenario=scn_852309565a",
+      "hint": "Backup V-300 via gulf_coast_barge recovers DOIR to 4.49 days (hist delay 14.6d)"
+    },
+    {
+      "iteration": 3,
+      "state": "PROCEED_TO_FINAL_OUTPUT",
+      "planner": "Evidence complete for Route stress R-GULF-EU: Houston \u2192 Antwerp. Synthesize NLP executive report: strike/disruption impact, DOIR trajectory, recommended PO reallocation.",
+      "executor": {
+        "tool": "emit_executive_report",
+        "params": {
+          "format": "structured_json",
+          "audience": "supply_chain_vp",
+          "meterless_cost_budget_remaining": 0.67,
+          "event": "Route stress R-GULF-EU: Houston \u2192 Antwerp",
+          "scenario_id": "scn_852309565a"
+        }
+      },
+      "evaluator": {
+        "data_complete": true,
+        "confidence_score": 0.96,
+        "missing_evidence_detected": false,
+        "verdict": "PROCEED_TO_FINAL_OUTPUT"
+      },
+      "metrics": {
+        "meterless_tokens_used": 1988,
+        "nvidia_nim_latency_ms": 72,
+        "doir_days": 4.49,
+        "burn_rate_units_per_day": 580,
+        "hist_delay_days": 14.6,
+        "hist_risk_score": 0.84
+      },
+      "carryover": "COMPLETED: evidence + executive mitigation report\nREMAINING: none\nDECISIONS: verdict=PROCEED_TO_FINAL_OUTPUT; action=reallocate_PO_to_V-300\nCONTEXT: confidence_score=0.96; retry_count=1; missing_evidence=[]; doir_days=4.49; hist_delay_days=14.6; scenario=scn_852309565a",
+      "hint": "Mitigation accepted for Route stress R-GULF-EU: Houston \u2192 Antwerp: reallocate PO to V-300"
+    }
+  ]
+}

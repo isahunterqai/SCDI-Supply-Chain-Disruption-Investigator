@@ -1,8 +1,8 @@
 {
-  "cursor": 7,
-  "last_scenario_id": "scn_c1d8600062",
-  "runs": 7,
-  "last_event": "Hurricane Harvey Gulf Coast Petrochemical Shutdown",
+  "cursor": 9,
+  "last_scenario_id": "scn_852309565a",
+  "runs": 9,
+  "last_event": "Route stress R-GULF-EU: Houston \u2192 Antwerp",
   "last_verdict": "PROCEED_TO_FINAL_OUTPUT",
-  "last_hint": "Mitigation accepted for Hurricane Harvey Gulf Coast Petrochemical Shutdown: reallocate PO to V-300"
+  "last_hint": "Mitigation accepted for Route stress R-GULF-EU: Houston \u2192 Antwerp: reallocate PO to V-300"
 }

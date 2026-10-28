@@ -1,0 +1,125 @@
+{
+  "scenario": {
+    "scenario_id": "scn_e0f6b85ec8",
+    "source_file": "shipping_disruptions.csv",
+    "event_name": "Port disruption at Houston",
+    "date": "2017-09-03",
+    "region": "North America",
+    "ports": [
+      "Houston"
+    ],
+    "severity": "critical",
+    "delay_days": 3.8333333333333335,
+    "risk_score": 0.885,
+    "freight_cost": 3900.0,
+    "congestion": 0.7666666666666667,
+    "on_time_pct": 42.0,
+    "event_type": "tanker",
+    "raw": {
+      "date": "2017-09-03",
+      "port": "Houston",
+      "region": "North America",
+      "vessel_type": "tanker",
+      "disruption_index": "8.85",
+      "wait_hours": "92.0",
+      "freight_rate": "3900",
+      "on_time_pct": "42.0",
+      "backlog_teu": "15100"
+    }
+  },
+  "iterations": [
+    {
+      "iteration": 1,
+      "state": "RETRY_EVALUATION",
+      "planner": "Parse historical disruption 'Port disruption at Houston' (2017-09-03, critical). Map inbound SKUs at Houston to warehouse burn rates. Query Zetaris ERP for open POs and DOIR under 3.8d delay.",
+      "executor": {
+        "tool": "zetaris_federated_sql_query",
+        "params": {
+          "query": "SELECT sku, on_hand, daily_burn, po_eta FROM erp.inventory i JOIN erp.purchase_orders p ON i.sku=p.sku WHERE p.origin_port='Houston' AND disruption_date='2017-09-03'",
+          "endpoint": "primary",
+          "meterless_cost_budget_remaining": 0.91,
+          "kaggle_source": "shipping_disruptions.csv",
+          "scenario_id": "scn_e0f6b85ec8"
+        }
+      },
+      "evaluator": {
+        "data_complete": false,
+        "confidence_score": 0.33,
+        "missing_evidence_detected": true,
+        "verdict": "RETRY"
+      },
+      "metrics": {
+        "meterless_tokens_used": 1277,
+        "nvidia_nim_latency_ms": 60,
+        "doir_days": 0.0,
+        "burn_rate_units_per_day": 580,
+        "hist_delay_days": 3.8333333333333335,
+        "hist_risk_score": 0.885
+      },
+      "carryover": "COMPLETED: strike/disruption bulletin parsed; primary ERP pull attempted\nREMAINING: backup supplier contracts; alternate routing; mitigation memo\nDECISIONS: reroute=secondary_erp_shard; risk=critical_doir\nCONTEXT: confidence_score=0.33; retry_count=1; missing_evidence=[backup_contracts,alt_lane_capacity]; doir_days=0.0; hist_delay_days=3.8; scenario=scn_e0f6b85ec8",
+      "hint": "Historical critical shock \u2192 DOIR 0.0d; missing backup contracts + alt lane capacity"
+    },
+    {
+      "iteration": 2,
+      "state": "CONTINUE",
+      "planner": "Iteration 1 missing backup_contracts, alt_lane_capacity. Re-route Zetaris to contracts shard; compute DOIR recovery under tanker delay scenarios for Houston.",
+      "executor": {
+        "tool": "zetaris_federated_sql_query",
+        "params": {
+          "query": "SELECT vendor_id, sku, lead_time_days, capacity FROM erp.backup_contracts WHERE sku IN (SELECT sku FROM strike_exposure WHERE port='Houston')",
+          "endpoint": "secondary",
+          "meterless_cost_budget_remaining": 0.79,
+          "exposed_sku": "SKU-HOU-PETRO",
+          "scenario_id": "scn_e0f6b85ec8"
+        }
+      },
+      "evaluator": {
+        "data_complete": true,
+        "confidence_score": 0.74,
+        "missing_evidence_detected": false,
+        "verdict": "CONTINUE"
+      },
+      "metrics": {
+        "meterless_tokens_used": 1637,
+        "nvidia_nim_latency_ms": 66,
+        "doir_days": 5.51,
+        "burn_rate_units_per_day": 580,
+        "hist_delay_days": 3.8333333333333335,
+        "hist_risk_score": 0.885
+      },
+      "carryover": "COMPLETED: backup contracts + alt lane capacity retrieved\nREMAINING: emit executive mitigation report\nDECISIONS: vendor=V-300; lane=gulf_coast_barge; doir_recovered=5.51\nCONTEXT: confidence_score=0.74; retry_count=1; missing_evidence=[]; doir_days=5.51; hist_delay_days=3.8; scenario=scn_e0f6b85ec8",
+      "hint": "Backup V-300 via gulf_coast_barge recovers DOIR to 5.51 days (hist delay 3.8d)"
+    },
+    {
+      "iteration": 3,
+      "state": "PROCEED_TO_FINAL_OUTPUT",
+      "planner": "Evidence complete for Port disruption at Houston. Synthesize NLP executive report: strike/disruption impact, DOIR trajectory, recommended PO reallocation.",
+      "executor": {
+        "tool": "emit_executive_report",
+        "params": {
+          "format": "structured_json",
+          "audience": "supply_chain_vp",
+          "meterless_cost_budget_remaining": 0.67,
+          "event": "Port disruption at Houston",
+          "scenario_id": "scn_e0f6b85ec8"
+        }
+      },
+      "evaluator": {
+        "data_complete": true,
+        "confidence_score": 0.96,
+        "missing_evidence_detected": false,
+        "verdict": "PROCEED_TO_FINAL_OUTPUT"
+      },
+      "metrics": {
+        "meterless_tokens_used": 1997,
+        "nvidia_nim_latency_ms": 72,
+        "doir_days": 5.51,
+        "burn_rate_units_per_day": 580,
+        "hist_delay_days": 3.8333333333333335,
+        "hist_risk_score": 0.885
+      },
+      "carryover": "COMPLETED: evidence + executive mitigation report\nREMAINING: none\nDECISIONS: verdict=PROCEED_TO_FINAL_OUTPUT; action=reallocate_PO_to_V-300\nCONTEXT: confidence_score=0.96; retry_count=1; missing_evidence=[]; doir_days=5.51; hist_delay_days=3.8; scenario=scn_e0f6b85ec8",
+      "hint": "Mitigation accepted for Port disruption at Houston: reallocate PO to V-300"
+    }
+  ]
+}

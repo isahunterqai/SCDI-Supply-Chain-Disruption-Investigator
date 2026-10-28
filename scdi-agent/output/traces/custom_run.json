@@ -1,45 +1,45 @@
 {
   "scenario": {
-    "scenario_id": "scn_770f8064b4",
+    "scenario_id": "scn_b1e65eaf8f",
     "source_file": "shipping_disruptions.csv",
-    "event_name": "Port disruption at Kaohsiung",
-    "date": "2026-06-21",
+    "event_name": "Port disruption at Tianjin",
+    "date": "2015-08-16",
     "region": "Asia",
     "ports": [
-      "Kaohsiung"
+      "Tianjin"
     ],
     "severity": "critical",
-    "delay_days": 4.5,
-    "risk_score": 0.905,
-    "freight_cost": 5800.0,
-    "congestion": 0.9,
-    "on_time_pct": 34.0,
+    "delay_days": 5.583333333333333,
+    "risk_score": 0.9349999999999999,
+    "freight_cost": 3800.0,
+    "congestion": 1.0,
+    "on_time_pct": 29.4,
     "event_type": "container",
     "raw": {
-      "date": "2026-06-21",
-      "port": "Kaohsiung",
+      "date": "2015-08-16",
+      "port": "Tianjin",
       "region": "Asia",
       "vessel_type": "container",
-      "disruption_index": "9.05",
-      "wait_hours": "108.0",
-      "freight_rate": "5800",
-      "on_time_pct": "34.0",
-      "backlog_teu": "20500"
+      "disruption_index": "9.35",
+      "wait_hours": "134.0",
+      "freight_rate": "3800",
+      "on_time_pct": "29.4",
+      "backlog_teu": "28000"
     }
   },
   "iterations": [
     {
       "iteration": 1,
       "state": "RETRY_EVALUATION",
-      "planner": "Parse historical disruption 'Port disruption at Kaohsiung' (2026-06-21, critical). Map inbound SKUs at Kaohsiung to warehouse burn rates. Query Zetaris ERP for open POs and DOIR under 4.5d delay.",
+      "planner": "Parse historical disruption 'Port disruption at Tianjin' (2015-08-16, critical). Map inbound SKUs at Tianjin to warehouse burn rates. Query Zetaris ERP for open POs and DOIR under 5.6d delay.",
       "executor": {
         "tool": "zetaris_federated_sql_query",
         "params": {
-          "query": "SELECT sku, on_hand, daily_burn, po_eta FROM erp.inventory i JOIN erp.purchase_orders p ON i.sku=p.sku WHERE p.origin_port='Kaohsiung' AND disruption_date='2026-06-21'",
+          "query": "SELECT sku, on_hand, daily_burn, po_eta FROM erp.inventory i JOIN erp.purchase_orders p ON i.sku=p.sku WHERE p.origin_port='Tianjin' AND disruption_date='2015-08-16'",
           "endpoint": "primary",
           "meterless_cost_budget_remaining": 0.9,
           "kaggle_source": "shipping_disruptions.csv",
-          "scenario_id": "scn_770f8064b4"
+          "scenario_id": "scn_b1e65eaf8f"
         }
       },
       "evaluator": {
@@ -49,59 +49,59 @@
         "verdict": "RETRY"
       },
       "metrics": {
-        "meterless_tokens_used": 1281,
-        "nvidia_nim_latency_ms": 63,
+        "meterless_tokens_used": 1287,
+        "nvidia_nim_latency_ms": 65,
         "doir_days": 0.0,
         "burn_rate_units_per_day": 700,
-        "hist_delay_days": 4.5,
-        "hist_risk_score": 0.905
+        "hist_delay_days": 5.583333333333333,
+        "hist_risk_score": 0.9349999999999999
       },
-      "carryover": "COMPLETED: strike/disruption bulletin parsed; primary ERP pull attempted\nREMAINING: backup supplier contracts; alternate routing; mitigation memo\nDECISIONS: reroute=secondary_erp_shard; risk=critical_doir\nCONTEXT: confidence_score=0.32; retry_count=1; missing_evidence=[backup_contracts,alt_lane_capacity]; doir_days=0.0; hist_delay_days=4.5; scenario=scn_770f8064b4",
+      "carryover": "COMPLETED: strike/disruption bulletin parsed; primary ERP pull attempted\nREMAINING: backup supplier contracts; alternate routing; mitigation memo\nDECISIONS: reroute=secondary_erp_shard; risk=critical_doir\nCONTEXT: confidence_score=0.32; retry_count=1; missing_evidence=[backup_contracts,alt_lane_capacity]; doir_days=0.0; hist_delay_days=5.6; scenario=scn_b1e65eaf8f",
       "hint": "Historical critical shock \u2192 DOIR 0.0d; missing backup contracts + alt lane capacity"
     },
     {
       "iteration": 2,
       "state": "CONTINUE",
-      "planner": "Iteration 1 missing backup_contracts, alt_lane_capacity. Re-route Zetaris to contracts shard; compute DOIR recovery under container delay scenarios for Kaohsiung.",
+      "planner": "Iteration 1 missing backup_contracts, alt_lane_capacity. Re-route Zetaris to contracts shard; compute DOIR recovery under container delay scenarios for Tianjin.",
       "executor": {
         "tool": "zetaris_federated_sql_query",
         "params": {
-          "query": "SELECT vendor_id, sku, lead_time_days, capacity FROM erp.backup_contracts WHERE sku IN (SELECT sku FROM strike_exposure WHERE port='Kaohsiung')",
+          "query": "SELECT vendor_id, sku, lead_time_days, capacity FROM erp.backup_contracts WHERE sku IN (SELECT sku FROM strike_exposure WHERE port='Tianjin')",
           "endpoint": "secondary",
           "meterless_cost_budget_remaining": 0.78,
           "exposed_sku": "SKU-GEN-MIX",
-          "scenario_id": "scn_770f8064b4"
+          "scenario_id": "scn_b1e65eaf8f"
         }
       },
       "evaluator": {
         "data_complete": true,
-        "confidence_score": 0.74,
+        "confidence_score": 0.73,
         "missing_evidence_detected": false,
         "verdict": "CONTINUE"
       },
       "metrics": {
-        "meterless_tokens_used": 1641,
-        "nvidia_nim_latency_ms": 69,
-        "doir_days": 5.46,
+        "meterless_tokens_used": 1647,
+        "nvidia_nim_latency_ms": 71,
+        "doir_days": 5.4,
         "burn_rate_units_per_day": 700,
-        "hist_delay_days": 4.5,
-        "hist_risk_score": 0.905
+        "hist_delay_days": 5.583333333333333,
+        "hist_risk_score": 0.9349999999999999
       },
-      "carryover": "COMPLETED: backup contracts + alt lane capacity retrieved\nREMAINING: emit executive mitigation report\nDECISIONS: vendor=V-100; lane=alt_ocean; doir_recovered=5.46\nCONTEXT: confidence_score=0.74; retry_count=1; missing_evidence=[]; doir_days=5.46; hist_delay_days=4.5; scenario=scn_770f8064b4",
-      "hint": "Backup V-100 via alt_ocean recovers DOIR to 5.46 days (hist delay 4.5d)"
+      "carryover": "COMPLETED: backup contracts + alt lane capacity retrieved\nREMAINING: emit executive mitigation report\nDECISIONS: vendor=V-100; lane=alt_ocean; doir_recovered=5.4\nCONTEXT: confidence_score=0.73; retry_count=1; missing_evidence=[]; doir_days=5.4; hist_delay_days=5.6; scenario=scn_b1e65eaf8f",
+      "hint": "Backup V-100 via alt_ocean recovers DOIR to 5.4 days (hist delay 5.6d)"
     },
     {
       "iteration": 3,
       "state": "PROCEED_TO_FINAL_OUTPUT",
-      "planner": "Evidence complete for Port disruption at Kaohsiung. Synthesize NLP executive report: strike/disruption impact, DOIR trajectory, recommended PO reallocation.",
+      "planner": "Evidence complete for Port disruption at Tianjin. Synthesize NLP executive report: strike/disruption impact, DOIR trajectory, recommended PO reallocation.",
       "executor": {
         "tool": "emit_executive_report",
         "params": {
           "format": "structured_json",
           "audience": "supply_chain_vp",
           "meterless_cost_budget_remaining": 0.66,
-          "event": "Port disruption at Kaohsiung",
-          "scenario_id": "scn_770f8064b4"
+          "event": "Port disruption at Tianjin",
+          "scenario_id": "scn_b1e65eaf8f"
         }
       },
       "evaluator": {
@@ -111,15 +111,15 @@
         "verdict": "PROCEED_TO_FINAL_OUTPUT"
       },
       "metrics": {
-        "meterless_tokens_used": 2001,
-        "nvidia_nim_latency_ms": 75,
-        "doir_days": 5.46,
+        "meterless_tokens_used": 2007,
+        "nvidia_nim_latency_ms": 77,
+        "doir_days": 5.4,
         "burn_rate_units_per_day": 700,
-        "hist_delay_days": 4.5,
-        "hist_risk_score": 0.905
+        "hist_delay_days": 5.583333333333333,
+        "hist_risk_score": 0.9349999999999999
       },
-      "carryover": "COMPLETED: evidence + executive mitigation report\nREMAINING: none\nDECISIONS: verdict=PROCEED_TO_FINAL_OUTPUT; action=reallocate_PO_to_V-100\nCONTEXT: confidence_score=0.96; retry_count=1; missing_evidence=[]; doir_days=5.46; hist_delay_days=4.5; scenario=scn_770f8064b4",
-      "hint": "Mitigation accepted for Port disruption at Kaohsiung: reallocate PO to V-100"
+      "carryover": "COMPLETED: evidence + executive mitigation report\nREMAINING: none\nDECISIONS: verdict=PROCEED_TO_FINAL_OUTPUT; action=reallocate_PO_to_V-100\nCONTEXT: confidence_score=0.96; retry_count=1; missing_evidence=[]; doir_days=5.4; hist_delay_days=5.6; scenario=scn_b1e65eaf8f",
+      "hint": "Mitigation accepted for Port disruption at Tianjin: reallocate PO to V-100"
     }
   ]
 }
