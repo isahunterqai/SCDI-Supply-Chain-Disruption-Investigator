@@ -1,9 +1,6 @@
-"""Azure Application Insights & Standards-Compliant OpenTelemetry (OTLP) Integration.
+"""Azure Application Insights Telemetry Integration for SCDI Agent Backend.
 
-Supports:
-1. Standards-compliant OpenTelemetry Protocol (OTLP/HTTP) Ingestion Endpoints
-   with Azure Monitor Data Collection Rules (DCR) and Data Collection Endpoints (DCE).
-2. Azure Application Insights Track API with direct connection string fallback.
+Zero third-party pip dependencies — uses Python standard library urllib.request.
 """
 from __future__ import annotations
 
@@ -17,59 +14,12 @@ from typing import Any, Dict, Optional
 
 logger = logging.getLogger("scdi_agent.telemetry")
 
-# Azure Monitor OTLP / DCR Configuration
-OTLP_DCE_HOST = "managed-hackathonvm01-appins-dce-6av7.eastus-1.ingest.monitor.azure.com"
-OTLP_DCR_ID = "dcr-6cbb891352f24534aba0f59439a3ae3a"
-OTLP_DCR_NAME = "managed-hackathonvm01-appins-dcr"
-
-OTLP_TRACES_ENDPOINT = (
-    f"https://{OTLP_DCE_HOST}/dataCollectionRules/{OTLP_DCR_ID}/streams/Microsoft-OTLP-Traces/otlp/v1/traces"
-)
-OTLP_METRICS_ENDPOINT = (
-    "https://managed-hackathonvm01-appins-dce-6av7.eastus-1.metrics.ingest.monitor.azure.com"
-    f"/dataCollectionRules/{OTLP_DCR_ID}/streams/Microsoft-OtelMetrics/otlp/v1/metrics"
-)
-OTLP_LOGS_ENDPOINT = (
-    f"https://{OTLP_DCE_HOST}/dataCollectionRules/{OTLP_DCR_ID}/streams/Microsoft-OTLP-Logs/otlp/v1/logs"
-)
-
 DEFAULT_CONNECTION_STRING = (
     "InstrumentationKey=f30b4c6a-de1c-4d93-9947-9bd9acc8e2e3;"
     "IngestionEndpoint=https://eastus-8.in.applicationinsights.azure.com/;"
     "LiveEndpoint=https://eastus.livediagnostics.monitor.azure.com/;"
     "ApplicationId=f7e07a9d-2908-4d76-b6d3-6dbb1b51c9e3"
 )
-
-
-class EntraTokenProvider:
-    """Acquires and caches Entra ID tokens from Azure IMDS Managed Identity or Environment."""
-
-    def __init__(self) -> None:
-        self._cached_token: Optional[str] = None
-        self._expires_at: float = 0.0
-
-    def get_token(self) -> Optional[str]:
-        # Check explicit env var override
-        env_token = os.environ.get("AZURE_BEARER_TOKEN") or os.environ.get("ARM_TOKEN")
-        if env_token:
-            return env_token
-
-        # Check Azure IMDS if VM has Managed Identity enabled
-        try:
-            req = urllib.request.Request(
-                "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https://monitor.azure.com/",
-                headers={"Metadata": "true"},
-            )
-            with urllib.request.urlopen(req, timeout=1.5) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
-                token = data.get("access_token")
-                if token:
-                    self._cached_token = token
-                    return token
-        except Exception:
-            pass
-
-        return self._cached_token
 
 
 class ApplicationInsightsClient:
@@ -86,13 +36,7 @@ class ApplicationInsightsClient:
         base = ep_match.group(1).rstrip("/") if ep_match else "https://eastus-8.in.applicationinsights.azure.com"
         self.endpoint_url = f"{base}/v2/track"
 
-        # OTLP Endpoints
-        self.otlp_traces_endpoint = os.environ.get("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", OTLP_TRACES_ENDPOINT)
-        self.otlp_metrics_endpoint = os.environ.get("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", OTLP_METRICS_ENDPOINT)
-        self.otlp_logs_endpoint = os.environ.get("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", OTLP_LOGS_ENDPOINT)
-        self.token_provider = EntraTokenProvider()
-
-    def _post_appinsights(self, payload: Dict[str, Any]) -> bool:
+    def _post_item(self, payload: Dict[str, Any]) -> bool:
         try:
             data = json.dumps(payload).encode("utf-8")
             req = urllib.request.Request(
@@ -104,27 +48,7 @@ class ApplicationInsightsClient:
             with urllib.request.urlopen(req, timeout=3.0) as resp:
                 return resp.status in (200, 206)
         except Exception as exc:
-            logger.debug("AppInsights dispatch error: %s", exc)
-            return False
-
-    def _post_otlp(self, endpoint: str, body: bytes, content_type: str = "application/x-protobuf") -> bool:
-        token = self.token_provider.get_token()
-        if not token:
-            return False
-        try:
-            req = urllib.request.Request(
-                endpoint,
-                data=body,
-                headers={
-                    "Content-Type": content_type,
-                    "Authorization": f"Bearer {token}",
-                },
-                method="POST",
-            )
-            with urllib.request.urlopen(req, timeout=3.0) as resp:
-                return resp.status in (200, 202, 204)
-        except Exception as exc:
-            logger.debug("OTLP dispatch error: %s", exc)
+            logger.debug("Telemetry dispatch error: %s", exc)
             return False
 
     def track_event(
@@ -136,7 +60,6 @@ class ApplicationInsightsClient:
         now_iso = datetime.now(timezone.utc).isoformat()
         props = properties or {}
         props.setdefault("service", "scdi-agent-python")
-        props.setdefault("dcr_id", OTLP_DCR_ID)
 
         payload = {
             "name": "Microsoft.ApplicationInsights.Event",
@@ -152,7 +75,7 @@ class ApplicationInsightsClient:
                 },
             },
         }
-        return self._post_appinsights(payload)
+        return self._post_item(payload)
 
     def track_metric(
         self,
@@ -163,7 +86,6 @@ class ApplicationInsightsClient:
         now_iso = datetime.now(timezone.utc).isoformat()
         props = properties or {}
         props.setdefault("service", "scdi-agent-python")
-        props.setdefault("dcr_id", OTLP_DCR_ID)
 
         payload = {
             "name": "Microsoft.ApplicationInsights.Metric",
@@ -184,7 +106,7 @@ class ApplicationInsightsClient:
                 },
             },
         }
-        return self._post_appinsights(payload)
+        return self._post_item(payload)
 
     def track_iteration(
         self,
@@ -204,7 +126,6 @@ class ApplicationInsightsClient:
                 "iteration": str(iteration_num),
                 "state": state,
                 "verdict": verdict,
-                "otlp_dcr": OTLP_DCR_NAME,
             },
             measurements={
                 "nvidia_nim_latency_ms": float(nim_latency_ms),
