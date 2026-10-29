@@ -1,0 +1,128 @@
+{
+  "scenario": {
+    "scenario_id": "scn_0e4c1e3e15",
+    "source_file": "geopolitical_events.csv",
+    "event_name": "US-China Trade Tariff Front-Loading Surge",
+    "date": "2018-09-24",
+    "region": "Trans-Pacific",
+    "ports": [
+      "Shanghai",
+      "Ningbo",
+      "Shenzhen",
+      "Los Angeles"
+    ],
+    "severity": "medium",
+    "delay_days": 13.600000000000001,
+    "risk_score": 0.68,
+    "freight_cost": 5220.0,
+    "congestion": 0.68,
+    "on_time_pct": null,
+    "event_type": "tariff_shock",
+    "raw": {
+      "event_id": "GE-2018-04",
+      "event_name": "US-China Trade Tariff Front-Loading Surge",
+      "start_date": "2018-09-24",
+      "end_date": "2019-01-15",
+      "severity": "medium",
+      "region": "Trans-Pacific",
+      "affected_ports": "Shanghai,Ningbo,Shenzhen,Los Angeles",
+      "event_type": "tariff_shock",
+      "disruption_score": "0.68"
+    }
+  },
+  "iterations": [
+    {
+      "iteration": 1,
+      "state": "RETRY_EVALUATION",
+      "planner": "Parse historical disruption 'US-China Trade Tariff Front-Loading Surge' (2018-09-24, medium). Map inbound SKUs at Shanghai to warehouse burn rates. Query Zetaris ERP for open POs and DOIR under 13.6d delay.",
+      "executor": {
+        "tool": "zetaris_federated_sql_query",
+        "params": {
+          "query": "SELECT sku, on_hand, daily_burn, po_eta FROM erp.inventory i JOIN erp.purchase_orders p ON i.sku=p.sku WHERE p.origin_port='Shanghai' AND disruption_date='2018-09-24'",
+          "endpoint": "primary",
+          "meterless_cost_budget_remaining": 0.92,
+          "kaggle_source": "geopolitical_events.csv",
+          "scenario_id": "scn_0e4c1e3e15"
+        }
+      },
+      "evaluator": {
+        "data_complete": false,
+        "confidence_score": 0.38,
+        "missing_evidence_detected": true,
+        "verdict": "RETRY"
+      },
+      "metrics": {
+        "meterless_tokens_used": 1236,
+        "nvidia_nim_latency_ms": 58,
+        "doir_days": 0.0,
+        "burn_rate_units_per_day": 860,
+        "hist_delay_days": 13.600000000000001,
+        "hist_risk_score": 0.68
+      },
+      "carryover": "COMPLETED: strike/disruption bulletin parsed; primary ERP pull attempted\nREMAINING: backup supplier contracts; alternate routing; mitigation memo\nDECISIONS: reroute=secondary_erp_shard; risk=medium_doir\nCONTEXT: confidence_score=0.38; retry_count=1; missing_evidence=[backup_contracts,alt_lane_capacity]; doir_days=0.0; hist_delay_days=13.6; scenario=scn_0e4c1e3e15",
+      "hint": "Historical medium shock \u2192 DOIR 0.0d; missing backup contracts + alt lane capacity"
+    },
+    {
+      "iteration": 2,
+      "state": "CONTINUE",
+      "planner": "Iteration 1 missing backup_contracts, alt_lane_capacity. Re-route Zetaris to contracts shard; compute DOIR recovery under tariff_shock delay scenarios for Shanghai.",
+      "executor": {
+        "tool": "zetaris_federated_sql_query",
+        "params": {
+          "query": "SELECT vendor_id, sku, lead_time_days, capacity FROM erp.backup_contracts WHERE sku IN (SELECT sku FROM strike_exposure WHERE port='Shanghai')",
+          "endpoint": "secondary",
+          "meterless_cost_budget_remaining": 0.8,
+          "exposed_sku": "SKU-LAX-ELECTRONICS",
+          "scenario_id": "scn_0e4c1e3e15"
+        }
+      },
+      "evaluator": {
+        "data_complete": true,
+        "confidence_score": 0.78,
+        "missing_evidence_detected": false,
+        "verdict": "CONTINUE"
+      },
+      "metrics": {
+        "meterless_tokens_used": 1596,
+        "nvidia_nim_latency_ms": 64,
+        "doir_days": 3.58,
+        "burn_rate_units_per_day": 860,
+        "hist_delay_days": 13.600000000000001,
+        "hist_risk_score": 0.68
+      },
+      "carryover": "COMPLETED: backup contracts + alt lane capacity retrieved\nREMAINING: emit executive mitigation report\nDECISIONS: vendor=V-482; lane=rail_intermodal; doir_recovered=3.58\nCONTEXT: confidence_score=0.78; retry_count=1; missing_evidence=[]; doir_days=3.58; hist_delay_days=13.6; scenario=scn_0e4c1e3e15",
+      "hint": "Backup V-482 via rail_intermodal recovers DOIR to 3.58 days (hist delay 13.6d)"
+    },
+    {
+      "iteration": 3,
+      "state": "PROCEED_TO_FINAL_OUTPUT",
+      "planner": "Evidence complete for US-China Trade Tariff Front-Loading Surge. Synthesize NLP executive report: strike/disruption impact, DOIR trajectory, recommended PO reallocation.",
+      "executor": {
+        "tool": "emit_executive_report",
+        "params": {
+          "format": "structured_json",
+          "audience": "supply_chain_vp",
+          "meterless_cost_budget_remaining": 0.68,
+          "event": "US-China Trade Tariff Front-Loading Surge",
+          "scenario_id": "scn_0e4c1e3e15"
+        }
+      },
+      "evaluator": {
+        "data_complete": true,
+        "confidence_score": 0.96,
+        "missing_evidence_detected": false,
+        "verdict": "PROCEED_TO_FINAL_OUTPUT"
+      },
+      "metrics": {
+        "meterless_tokens_used": 1956,
+        "nvidia_nim_latency_ms": 70,
+        "doir_days": 3.58,
+        "burn_rate_units_per_day": 860,
+        "hist_delay_days": 13.600000000000001,
+        "hist_risk_score": 0.68
+      },
+      "carryover": "COMPLETED: evidence + executive mitigation report\nREMAINING: none\nDECISIONS: verdict=PROCEED_TO_FINAL_OUTPUT; action=reallocate_PO_to_V-482\nCONTEXT: confidence_score=0.96; retry_count=1; missing_evidence=[]; doir_days=3.58; hist_delay_days=13.6; scenario=scn_0e4c1e3e15",
+      "hint": "Mitigation accepted for US-China Trade Tariff Front-Loading Surge: reallocate PO to V-482"
+    }
+  ]
+}

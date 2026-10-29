@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, Sora } from "next/font/google";
+import { AppInsightsProvider } from "@/components/AppInsightsProvider";
 import "./globals.css";
 
 const sora = Sora({
@@ -33,6 +34,7 @@ export default function RootLayout({
         }}
       >
         <style>{`.font-mono{font-family:var(--font-plex-mono),ui-monospace,monospace}`}</style>
+        <AppInsightsProvider />
         {children}
       </body>
     </html>

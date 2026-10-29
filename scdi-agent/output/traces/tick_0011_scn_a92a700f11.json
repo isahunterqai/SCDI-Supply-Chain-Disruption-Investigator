@@ -1,0 +1,127 @@
+{
+  "scenario": {
+    "scenario_id": "scn_a92a700f11",
+    "source_file": "weekly_route_operations.csv",
+    "event_name": "Route stress R-PAC-USW: Shenzhen \u2192 Los Angeles",
+    "date": "2018-10-14",
+    "region": "Trade lane",
+    "ports": [
+      "Shenzhen",
+      "Los Angeles"
+    ],
+    "severity": "high",
+    "delay_days": 11.8,
+    "risk_score": 0.72,
+    "freight_cost": 3850.0,
+    "congestion": 0.82,
+    "on_time_pct": null,
+    "event_type": "degraded",
+    "raw": {
+      "date": "2018-10-14",
+      "route_id": "R-PAC-USW",
+      "origin_port": "Shenzhen",
+      "dest_port": "Los Angeles",
+      "delay_days": "11.8",
+      "freight_cost_usd": "3850",
+      "risk_score": "0.72",
+      "port_congestion": "0.82",
+      "container_availability": "0.49",
+      "route_status": "degraded"
+    }
+  },
+  "iterations": [
+    {
+      "iteration": 1,
+      "state": "RETRY_EVALUATION",
+      "planner": "Parse historical disruption 'Route stress R-PAC-USW: Shenzhen \u2192 Los Angeles' (2018-10-14, high). Map inbound SKUs at Shenzhen to warehouse burn rates. Query Zetaris ERP for open POs and DOIR under 11.8d delay.",
+      "executor": {
+        "tool": "zetaris_federated_sql_query",
+        "params": {
+          "query": "SELECT sku, on_hand, daily_burn, po_eta FROM erp.inventory i JOIN erp.purchase_orders p ON i.sku=p.sku WHERE p.origin_port='Shenzhen' AND disruption_date='2018-10-14'",
+          "endpoint": "primary",
+          "meterless_cost_budget_remaining": 0.91,
+          "kaggle_source": "weekly_route_operations.csv",
+          "scenario_id": "scn_a92a700f11"
+        }
+      },
+      "evaluator": {
+        "data_complete": false,
+        "confidence_score": 0.37,
+        "missing_evidence_detected": true,
+        "verdict": "RETRY"
+      },
+      "metrics": {
+        "meterless_tokens_used": 1244,
+        "nvidia_nim_latency_ms": 61,
+        "doir_days": 0.0,
+        "burn_rate_units_per_day": 860,
+        "hist_delay_days": 11.8,
+        "hist_risk_score": 0.72
+      },
+      "carryover": "COMPLETED: strike/disruption bulletin parsed; primary ERP pull attempted\nREMAINING: backup supplier contracts; alternate routing; mitigation memo\nDECISIONS: reroute=secondary_erp_shard; risk=high_doir\nCONTEXT: confidence_score=0.37; retry_count=1; missing_evidence=[backup_contracts,alt_lane_capacity]; doir_days=0.0; hist_delay_days=11.8; scenario=scn_a92a700f11",
+      "hint": "Historical high shock \u2192 DOIR 0.0d; missing backup contracts + alt lane capacity"
+    },
+    {
+      "iteration": 2,
+      "state": "CONTINUE",
+      "planner": "Iteration 1 missing backup_contracts, alt_lane_capacity. Re-route Zetaris to contracts shard; compute DOIR recovery under degraded delay scenarios for Shenzhen.",
+      "executor": {
+        "tool": "zetaris_federated_sql_query",
+        "params": {
+          "query": "SELECT vendor_id, sku, lead_time_days, capacity FROM erp.backup_contracts WHERE sku IN (SELECT sku FROM strike_exposure WHERE port='Shenzhen')",
+          "endpoint": "secondary",
+          "meterless_cost_budget_remaining": 0.79,
+          "exposed_sku": "SKU-LAX-ELECTRONICS",
+          "scenario_id": "scn_a92a700f11"
+        }
+      },
+      "evaluator": {
+        "data_complete": true,
+        "confidence_score": 0.78,
+        "missing_evidence_detected": false,
+        "verdict": "CONTINUE"
+      },
+      "metrics": {
+        "meterless_tokens_used": 1604,
+        "nvidia_nim_latency_ms": 67,
+        "doir_days": 4.7,
+        "burn_rate_units_per_day": 860,
+        "hist_delay_days": 11.8,
+        "hist_risk_score": 0.72
+      },
+      "carryover": "COMPLETED: backup contracts + alt lane capacity retrieved\nREMAINING: emit executive mitigation report\nDECISIONS: vendor=V-482; lane=rail_intermodal; doir_recovered=4.7\nCONTEXT: confidence_score=0.78; retry_count=1; missing_evidence=[]; doir_days=4.7; hist_delay_days=11.8; scenario=scn_a92a700f11",
+      "hint": "Backup V-482 via rail_intermodal recovers DOIR to 4.7 days (hist delay 11.8d)"
+    },
+    {
+      "iteration": 3,
+      "state": "PROCEED_TO_FINAL_OUTPUT",
+      "planner": "Evidence complete for Route stress R-PAC-USW: Shenzhen \u2192 Los Angeles. Synthesize NLP executive report: strike/disruption impact, DOIR trajectory, recommended PO reallocation.",
+      "executor": {
+        "tool": "emit_executive_report",
+        "params": {
+          "format": "structured_json",
+          "audience": "supply_chain_vp",
+          "meterless_cost_budget_remaining": 0.67,
+          "event": "Route stress R-PAC-USW: Shenzhen \u2192 Los Angeles",
+          "scenario_id": "scn_a92a700f11"
+        }
+      },
+      "evaluator": {
+        "data_complete": true,
+        "confidence_score": 0.96,
+        "missing_evidence_detected": false,
+        "verdict": "PROCEED_TO_FINAL_OUTPUT"
+      },
+      "metrics": {
+        "meterless_tokens_used": 1964,
+        "nvidia_nim_latency_ms": 73,
+        "doir_days": 4.7,
+        "burn_rate_units_per_day": 860,
+        "hist_delay_days": 11.8,
+        "hist_risk_score": 0.72
+      },
+      "carryover": "COMPLETED: evidence + executive mitigation report\nREMAINING: none\nDECISIONS: verdict=PROCEED_TO_FINAL_OUTPUT; action=reallocate_PO_to_V-482\nCONTEXT: confidence_score=0.96; retry_count=1; missing_evidence=[]; doir_days=4.7; hist_delay_days=11.8; scenario=scn_a92a700f11",
+      "hint": "Mitigation accepted for Route stress R-PAC-USW: Shenzhen \u2192 Los Angeles: reallocate PO to V-482"
+    }
+  ]
+}

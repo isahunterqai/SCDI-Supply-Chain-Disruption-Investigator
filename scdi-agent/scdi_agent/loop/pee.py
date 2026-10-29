@@ -6,6 +6,7 @@ from dataclasses import asdict, dataclass, field
 from typing import Any, Literal
 
 from scdi_agent.ingest.loader import DisruptionScenario
+from scdi_agent.telemetry import get_telemetry_client
 from scdi_agent.tools.inventory import InventorySnapshot, model_inventory_impact
 
 Verdict = Literal["RETRY", "CONTINUE", "PROCEED_TO_FINAL_OUTPUT"]
@@ -299,6 +300,20 @@ def run_pee_loop(scenario: DisruptionScenario, max_steps: int = 5) -> list[Itera
                 event_name=scenario.event_name,
             )
         )
+
+        try:
+            get_telemetry_client().track_iteration(
+                scenario_id=scenario.scenario_id,
+                iteration_num=step + 1,
+                state=state_label,
+                verdict=verdict,
+                nim_latency_ms=45 + step * 6 + int(scenario.congestion * 20),
+                tokens_used=1100 + step * 360 + int(scenario.risk_score * 200),
+                doir_days=doir,
+                confidence_score=float(ev.get("confidence_score", 0.0)),
+            )
+        except Exception:
+            pass
 
         if verdict == "PROCEED_TO_FINAL_OUTPUT":
             break
