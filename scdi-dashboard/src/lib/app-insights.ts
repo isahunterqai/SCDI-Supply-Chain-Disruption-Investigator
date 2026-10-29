@@ -9,6 +9,21 @@ export const APP_INSIGHTS_CONNECTION_STRING =
   process.env.APPLICATIONINSIGHTS_CONNECTION_STRING ||
   "InstrumentationKey=f30b4c6a-de1c-4d93-9947-9bd9acc8e2e3;IngestionEndpoint=https://eastus-8.in.applicationinsights.azure.com/;LiveEndpoint=https://eastus.livediagnostics.monitor.azure.com/;ApplicationId=f7e07a9d-2908-4d76-b6d3-6dbb1b51c9e3";
 
+/**
+ * Azure Monitor Standards-Compliant OpenTelemetry (OTLP) Ingestion Configuration
+ */
+export const AZURE_MONITOR_OTLP = {
+  dcrName: "managed-hackathonvm01-appins-dcr",
+  dcrId: "dcr-6cbb891352f24534aba0f59439a3ae3a",
+  dceHost: "managed-hackathonvm01-appins-dce-6av7.eastus-1.ingest.monitor.azure.com",
+  tracesEndpoint:
+    "https://managed-hackathonvm01-appins-dce-6av7.eastus-1.ingest.monitor.azure.com/dataCollectionRules/dcr-6cbb891352f24534aba0f59439a3ae3a/streams/Microsoft-OTLP-Traces/otlp/v1/traces",
+  metricsEndpoint:
+    "https://managed-hackathonvm01-appins-dce-6av7.eastus-1.metrics.ingest.monitor.azure.com/dataCollectionRules/dcr-6cbb891352f24534aba0f59439a3ae3a/streams/Microsoft-OtelMetrics/otlp/v1/metrics",
+  logsEndpoint:
+    "https://managed-hackathonvm01-appins-dce-6av7.eastus-1.ingest.monitor.azure.com/dataCollectionRules/dcr-6cbb891352f24534aba0f59439a3ae3a/streams/Microsoft-OTLP-Logs/otlp/v1/logs",
+};
+
 let appInsightsInstance: ApplicationInsights | null = null;
 
 export function getAppInsights(): ApplicationInsights | null {
